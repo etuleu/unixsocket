@@ -6,10 +6,12 @@ buildscript {
 
     dependencies {
         classpath 'com.android.tools.build:gradle:3.6.0'
+	classpath 'digital.wup:android-maven-publish:3.6.2'
     }
 }
 
 apply plugin: 'com.android.library'
+apply plugin: 'digital.wup.android-maven-publish'
 
 android {
     compileSdkVersion 28
@@ -50,6 +52,17 @@ android {
     externalNativeBuild {
         cmake {
             path "src/main/cpp/CMakeLists.txt"
+        }
+    }
+}
+
+publishing {
+    publications {
+        mavenAar(MavenPublication) {
+            from components.android
+            groupId 'com.unixsocket'
+            artifactId 'unixsocket'
+            version "1.0"
         }
     }
 }
