@@ -39,7 +39,7 @@
  * Creates an endpoint for communication and returns a file descriptor
  */
 JNIEXPORT jint JNICALL
-Java_com_example_hellojni_NativeUnixSocket_socket(
+Java_com_unixsocket_NativeUnixSocket_socket(
         JNIEnv* env,
         jclass thiz) {
     int fd;
@@ -60,7 +60,7 @@ Java_com_example_hellojni_NativeUnixSocket_socket(
  * Create the epoll loop.
  */
 JNIEXPORT jint JNICALL
-Java_com_example_hellojni_NativeUnixSocket_epollCreate(
+Java_com_unixsocket_NativeUnixSocket_epollCreate(
         JNIEnv* env,
         jclass thiz) {
     int fd;
@@ -79,7 +79,7 @@ Java_com_example_hellojni_NativeUnixSocket_epollCreate(
  * Register a new socket for reading.
  */
 JNIEXPORT jint JNICALL
-Java_com_example_hellojni_NativeUnixSocket_epollAdd(
+Java_com_unixsocket_NativeUnixSocket_epollAdd(
         JNIEnv* env,
         jclass thiz,
         jint epollfd,
@@ -102,7 +102,7 @@ Java_com_example_hellojni_NativeUnixSocket_epollAdd(
  * Wait for events (read, write, error) on the already registered sockets.
  */
 JNIEXPORT jintArray JNICALL
-Java_com_example_hellojni_NativeUnixSocket_epollWait(
+Java_com_unixsocket_NativeUnixSocket_epollWait(
         JNIEnv* env,
         jclass thiz,
         jint epollfd) {
@@ -132,7 +132,7 @@ Java_com_example_hellojni_NativeUnixSocket_epollWait(
  * Creates an endpoint for communication and returns a file descriptor
  */
 JNIEXPORT jint JNICALL
-Java_com_example_hellojni_NativeUnixSocket_close(
+Java_com_unixsocket_NativeUnixSocket_close(
         JNIEnv* env,
         jclass thiz,
         jint fd) {
@@ -148,7 +148,7 @@ Java_com_example_hellojni_NativeUnixSocket_close(
  * Make the socket blocking or non-blocking.
  */
 JNIEXPORT jint JNICALL
-Java_com_example_hellojni_NativeUnixSocket_setBlocking(
+Java_com_unixsocket_NativeUnixSocket_setBlocking(
         JNIEnv* env,
         jclass thiz,
         jint fd,
@@ -169,7 +169,7 @@ Java_com_example_hellojni_NativeUnixSocket_setBlocking(
  * Connect a unix domain socket.
  */
 JNIEXPORT jint JNICALL
-Java_com_example_hellojni_NativeUnixSocket_connect(
+Java_com_unixsocket_NativeUnixSocket_connect(
         JNIEnv* env,
         jclass thiz,
         jint fd,
@@ -203,7 +203,7 @@ Java_com_example_hellojni_NativeUnixSocket_connect(
  * Writes data to the socket at file descriptor fd.
  */
 JNIEXPORT jint JNICALL
-Java_com_example_hellojni_NativeUnixSocket_write(
+Java_com_unixsocket_NativeUnixSocket_write(
         JNIEnv* env,
         jclass thiz,
         jint fd,
@@ -225,7 +225,7 @@ Java_com_example_hellojni_NativeUnixSocket_write(
  * Read from the socket at file descriptor fd and return the data as a byte array.
  */
 JNIEXPORT jint JNICALL
-Java_com_example_hellojni_NativeUnixSocket_read(
+Java_com_unixsocket_NativeUnixSocket_read(
         JNIEnv* env,
         jclass thiz,
         jint fd,
@@ -254,7 +254,7 @@ Java_com_example_hellojni_NativeUnixSocket_read(
  * Create a listening unix socket (just for testing).
  */
 JNIEXPORT jint JNICALL
-Java_com_example_hellojni_NativeUnixSocket_startlistening(
+Java_com_unixsocket_NativeUnixSocket_startlistening(
         JNIEnv* env,
         jclass thiz,
         jstring hostStr) {

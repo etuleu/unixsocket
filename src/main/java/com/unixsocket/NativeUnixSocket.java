@@ -1,5 +1,6 @@
 package com.unixsocket;
 
+import android.util.Log;
 
 /**
  * Native interface for all unix socket functions needed for the async socket channel.
@@ -7,7 +8,9 @@ package com.unixsocket;
 public class NativeUnixSocket {
 
     static {
+	Log.i("NativeUnixSocket", "loading native lib unix-socket-jni");
 	System.loadLibrary("unix-socket-jni");
+	Log.i("NativeUnixSocket", "done loading native lib unix-socket-jni");
     }
 
     /*
