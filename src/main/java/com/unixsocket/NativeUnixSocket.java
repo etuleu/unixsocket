@@ -6,6 +6,10 @@ package com.unixsocket;
  */
 public class NativeUnixSocket {
 
+    static {
+	System.loadLibrary("unix-socket-jni");
+    }
+
     /*
      * Creates a unix socket.
      * Returns the file descriptor of new the socket.
