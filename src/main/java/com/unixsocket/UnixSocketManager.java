@@ -18,7 +18,7 @@ public class UnixSocketManager {
     public static final int EPOLLERR = 0x008;
     public static final int EPOLLHUP = 0x010;
 
-    public final static boolean DEBUG = true;
+    public final static boolean DEBUG = false;
 
     int epollfd;
     Map<Integer, UnixSocketHandler> handlers = new HashMap<>();
@@ -39,33 +39,12 @@ public class UnixSocketManager {
 
     public void connect(UnixSocketHandler handler, String path) throws IOException {
         handlers.put(handler.getFd(), handler);
-
         SocketAddress address = new InetSocketAddress(path, 0);
-
-        while (true) {
-            // TODO: use the select loop for this?
-            boolean connected = handler.connect(address);
-            Util.print("doConnect connected: " + connected);
-            if (connected) {
-                break;
-            }
-            Util.sleep(1000);
-        }
-
-        NativeUnixSocket.epollAdd(epollfd, handler.getFd());
-
-        if (DEBUG) {
-            String newData = "1234567890";
-            handler.write(newData.getBytes());
-            Util.print("doConnect write done");
-            Util.sleep(1000); // TODO(erdal): remove this after debugging
-        }
+	handler.connect(address);
+	NativeUnixSocket.epollAdd(epollfd, handler.getFd());
     }
 
     public void setupLoop() {
-        // TODO(erdal): setup a thread and call doLoop
-        // then make doLoop private
-
         new Thread(new Runnable() {
             @Override
             public void run() {
