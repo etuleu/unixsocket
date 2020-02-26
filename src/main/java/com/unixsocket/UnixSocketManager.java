@@ -23,6 +23,7 @@ public class UnixSocketManager {
     int epollfd;
     Map<Integer, UnixSocketHandler> handlers = new HashMap<>();
     Map<Integer, DataCallback> dataCallbacks = new HashMap<>();
+    boolean isLooping;
 
     public UnixSocketManager() {
 	try {
@@ -52,6 +53,11 @@ public class UnixSocketManager {
     }
 
     public void setupLoop() {
+	if (isLooping) {
+	    return;
+	}
+	isLooping = true;
+
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -98,6 +104,10 @@ public class UnixSocketManager {
                 Util.print("socket is writable");
                 // TODO(erdal): for now we write in sync
                 // handler.write();
+
+		// I think writing from a different thread is fine
+		// for an interesting read about unix threads:
+		// https://pubs.opengroup.org/onlinepubs/009695399/functions/xsh_chap02_09.html
             } else {
                 Util.print("unhandled epoll event");
                 // TODO(erdal): handle errors, close, cleanup
