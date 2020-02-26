@@ -25,11 +25,18 @@ public class UnixSocketManager {
     Map<Integer, DataCallback> dataCallbacks = new HashMap<>();
 
     public UnixSocketManager() {
-        setupEpoll();
+	try {
+	    setupEpoll();
+	} catch (Exception e) {
+	    throw new RuntimeException(e);
+	}
     }
 
-    private void setupEpoll() {
+    private void setupEpoll() throws IOException {
         epollfd = NativeUnixSocket.epollCreate();
+	if (epollfd < 0) {
+	    throw new IOException("epoll create returned error: " + (-epollfd));
+	}
         // TODO: setup wakeup socket if we need to
     }
 
@@ -52,7 +59,8 @@ public class UnixSocketManager {
                     try {
                         doLoop();
                     } catch (Exception e) {
-                        // TODO(erdal): what?
+                        // TODO(erdal): what should we do here?
+			throw new RuntimeException(e);
                     }
                 }
             }
@@ -64,12 +72,18 @@ public class UnixSocketManager {
         // we encode the results in an array for easier transmission from jni
         // every pair of entries in the array is (fd, events)
         int n = events.length / 2;
-        Util.print("epoll returned events: " + events.length);
+        Util.print("epoll returned events: " + n);
 
         for (int i = 0; i < n; i++) {
             int fd = events[2 * i];
             int event = events[2 * i + 1];
             Util.print("fd: " + fd + " event: " + event);
+
+	    if (fd == epollfd) {
+		int error = -event;
+		Util.print("epoll wait returned error: " + error);
+		throw new IOException("epoll wait error: " + error);
+	    }
 
             UnixSocketHandler handler = handlers.get(fd);
 

@@ -65,7 +65,7 @@ Java_com_unixsocket_NativeUnixSocket_epollCreate(
         jclass thiz) {
     int fd;
 
-    if ((fd = epoll_create(0)) == -1) {
+    if ((fd = epoll_create(MAX_EVENTS)) == -1) {
         fd = -errno;
     }
 
@@ -110,10 +110,14 @@ Java_com_unixsocket_NativeUnixSocket_epollWait(
     struct epoll_event events[MAX_EVENTS];
 
     if ((nfds = epoll_wait(epollfd, events, MAX_EVENTS, -1)) == -1) {
-        nfds = -errno;
+      // we signal error by setting the fd to be the epoll fd
+      jint temp[2];
+      temp[0] = epollfd;
+      temp[1] = -errno;
+      jintArray res = (*env)->NewIntArray(env, 2);
+      (*env)->SetIntArrayRegion(env, res, 0, 2, temp);
+      return res;
     }
-
-    jintArray res = (*env)->NewIntArray(env, 2 * nfds);
 
     jint temp[2 * nfds];
 
@@ -122,6 +126,8 @@ Java_com_unixsocket_NativeUnixSocket_epollWait(
         temp[2 * i + 1] = events[i].events;
     }
 
+    // copy into a java array for return
+    jintArray res = (*env)->NewIntArray(env, 2 * nfds);
     (*env)->SetIntArrayRegion(env, res, 0, 2 * nfds, temp);
 
     return res;
