@@ -29,14 +29,15 @@
 
 // UNIX domain sockets https://troydhanson.github.io/network/Unix_domain_sockets.html
 
-// TODO(erdal): macros for the function signatures, macros for logging
+// TODO(erdal): macros for the function signatures
 
 // In general if a system call returns an error we will return the errno as a negative number
 // That way the caller (java in our case) can distinguish between success and fail and also
 // get the error number.
 
+
 /*
- * Creates an endpoint for communication and returns a file descriptor
+ * Creates a local (unconnected yet) unix socket, which is just a file descriptor.
  */
 JNIEXPORT jint JNICALL
 Java_com_unixsocket_NativeUnixSocket_socket(
@@ -57,7 +58,7 @@ Java_com_unixsocket_NativeUnixSocket_socket(
 
 
 /*
- * Create the epoll loop.
+ * Create the epoll loop, which will be the main driver for reading from sockets.
  */
 JNIEXPORT jint JNICALL
 Java_com_unixsocket_NativeUnixSocket_epollCreate(
@@ -68,8 +69,6 @@ Java_com_unixsocket_NativeUnixSocket_epollCreate(
     if ((fd = epoll_create(MAX_EVENTS)) == -1) {
         fd = -errno;
     }
-
-    // TODO: add a wakeup socket?
 
     return fd;
 }
@@ -87,7 +86,7 @@ Java_com_unixsocket_NativeUnixSocket_epollAdd(
     int res;
 
     struct epoll_event ev;
-    ev.events = EPOLLIN; // TODO: any other events we are interested in?
+    ev.events = EPOLLIN;
     ev.data.fd = fd;
 
     if ((res = epoll_ctl(epollfd, EPOLL_CTL_ADD, fd, &ev)) == -1) {
@@ -122,20 +121,21 @@ Java_com_unixsocket_NativeUnixSocket_epollWait(
     jint temp[2 * nfds];
 
     for (int i = 0; i < nfds; i++) {
-        temp[2 * i] = events[i].data.fd;
-        temp[2 * i + 1] = events[i].events;
+      // we basically define a simple protocol where the first entry in the pair
+      // is the file descriptor for which the event fired and the second is the event itself
+      temp[2 * i] = events[i].data.fd;
+      temp[2 * i + 1] = events[i].events;
     }
 
     // copy into a java array for return
     jintArray res = (*env)->NewIntArray(env, 2 * nfds);
     (*env)->SetIntArrayRegion(env, res, 0, 2 * nfds, temp);
-
     return res;
 }
 
 
 /*
- * Creates an endpoint for communication and returns a file descriptor
+ * Close basically releases the file descriptor back to the OS.
  */
 JNIEXPORT jint JNICALL
 Java_com_unixsocket_NativeUnixSocket_close(
@@ -173,6 +173,10 @@ Java_com_unixsocket_NativeUnixSocket_setBlocking(
 
 /*
  * Connect a unix domain socket.
+ *
+ * An abstract unix socket is signaled by the host string starting with a null byte.
+ * Othherwise it is a regular file based unix socket.
+ * http://man7.org/linux/man-pages/man7/unix.7.html
  */
 JNIEXPORT jint JNICALL
 Java_com_unixsocket_NativeUnixSocket_connect(
@@ -251,7 +255,6 @@ Java_com_unixsocket_NativeUnixSocket_read(
     }
 
     (*env)->SetByteArrayRegion(env, data, 0, n, buff);
-
     return n;
 }
 
