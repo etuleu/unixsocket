@@ -10,7 +10,6 @@ public class UnixSocketHandler {
 
     // https://www-numi.fnal.gov/offline_software/srt_public_context/WebDocs/Errors/unix_system_errors.html
     public final static int EAGAIN = 11;            /* Try again */
-    public final static int ECONNREFUSED = 111;     /* Connection refused */
 
     enum State {
         UNINITIALIZED,
@@ -94,30 +93,13 @@ public class UnixSocketHandler {
         Util.print("connect returned " + res);
 
         if (res < 0) {
-            int errno = - res;
-            if (errno == ECONNREFUSED) {
-                throw new IOException("connection refused");
-            }
-            return false;
+	    // TODO(erdal): here we could allow for async connect by checking for EAGAIN
+	    // and returning false, but the caller needs to keep calling connect until ready
+            int errno = -res;
+	    throw new IOException("connect failed: " + errno);
         }
 
         return true;
-    }
-
-    public boolean finishConnect() throws IOException {
-        Util.print("finishConnect");
-        if (state == State.CONNECTED) {
-            return true;
-        }
-        if (state == State.CONNECTING) {
-            if (!doConnect(remoteAddress)) {
-                return false;
-            }
-            state = State.CONNECTED;
-            return true;
-        }
-
-        throw new IllegalStateException("socket is not waiting for connect to complete");
     }
 
     public SocketAddress getRemoteAddress() {
@@ -129,7 +111,7 @@ public class UnixSocketHandler {
             throw new ClosedChannelException();
         }
 
-        byte[] data = new byte[256 * 1024];  // TODO(erdal): can we do better?
+        byte[] data = new byte[10 * 1024];  // TODO(erdal): can we do better?
         int n = NativeUnixSocket.read(fd, data);
 
         if (n < 0) {
@@ -178,7 +160,6 @@ public class UnixSocketHandler {
         }
 
         NativeUnixSocket.close(fd);
-
         fd = -1;
     }
 
